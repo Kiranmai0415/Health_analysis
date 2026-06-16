@@ -28,7 +28,25 @@ h2 { font-size: 24px; color: #2d3748; margin-bottom: 6px; }
     border: 1px solid #e2e8f0;
     border-radius: 8px; font-size: 14px;
 }
+.page-header {
+    background: #0f172a;
+    padding: 22px;
+    text-align: center;
+    border-left: 6px solid #10b981;
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
 
+.page-header h1 {
+    color: #ffffff;
+    margin: 0;
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: 'Segoe UI', sans-serif;
+}
+/* 
 button {
     width: 100%; padding: 12px;
     background: #4299e1; color: white;
@@ -42,4 +60,4 @@ button:hover { background: #3182ce; }
     background: #fed7d7; color: #c53030;
     padding: 10px; border-radius: 8px;
     font-size: 13px; margin-bottom: 16px;
-}
+} */

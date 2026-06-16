@@ -163,7 +163,7 @@ if __name__ == "__main__":
         print("\n🏥 Hospital Dashboard starting at http://127.0.0.1:5000")
         print("\n── Login Credentials ──────────────────────")
         print("  admin        / admin123       (Admin)")
-        print("  dr_ramesh   / doctor123      (Doctor)")
+        print("  dr_ramesh    / doctor123      (Doctor)")
         print("  dr_preethi   / doctor456      (Doctor)")
         print("  nurse_kavya  / nurse123       (Nurse)")
         print("  nurse_sneha  / nurse456       (Nurse)")

@@ -1,10 +1,89 @@
+
 <!DOCTYPE html>
-<head> 
-    <title>
-        HealthAnalysis
-    </title>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Patient Analytics</title>
+
+    <link rel="stylesheet" href="../static/dashboard.css">
 </head>
+
 <body>
-    <h1>HOSPITAL PATIENT DATA ANALYTICS</h1>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+            <svg viewBox="0 0 24 24">
+                <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 3a1 1 0 011 1v3h3a1 1 0 010 2h-3v3a1 1 0 01-2 0v-3H8a1 1 0 010-2h3V7a1 1 0 011-1z"/>
+            </svg>
+            <span>MediDash</span>
+        </div>
+
+        <div class="user-info">
+            <div class="user-av">
+                {{ user.avatar | default('DR') }}
+            </div>
+
+            <div>
+                <div class="user-name">
+                    {{ user.name | default('Dr. Alex Mercer') }}
+                </div>
+
+                <div class="user-role">
+                    {{ user.role | default('Doctor') }}
+                </div>
+            </div>
+        </div>
+
+        <div class="role-badge role-{{ user.role | default('doctor') }}">
+            {% if user.role == 'admin' %}
+                ⚙ Administrator
+            {% elif user.role == 'doctor' or not user.role %}
+                🩺 Doctor
+            {% elif user.role == 'nurse' %}
+                💉 Nurse
+            {% else %}
+                🗂 Receptionist
+            {% endif %}
+        </div>
+
+        <div class="sidebar-sub">Navigation</div>
+
+        <a href="#" class="nav-item active">
+            Dashboard
+        </a>
+
+        <a href="../hospital_output.xlsx" class="nav-item">
+            Patients
+        </a>
+
+        {% if user.role in ['admin','doctor'] or not user.role %}
+        <a href="#" class="nav-item">
+            Reports
+        </a>
+        {% endif %}
+
+        <div class="sidebar-footer">
+            <a href="/logout" class="logout-btn">
+                Sign Out
+            </a>
+        </div>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <div class="page-header">
+            <h1>Hospital Patient Data Analytics</h1>
+        </div>
+
+        <!-- Dashboard content goes here -->
+
+    </main>
+
 </body>
 </html>
+

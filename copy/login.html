@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hospital Portal — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f0f4f8;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.card{background:#fff;border-radius:16px;padding:48px 40px;width:100%;max-width:400px;box-shadow:0 4px 24px rgba(0,0,0,0.08)}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:32px;justify-content:center}
+.logo-icon{width:44px;height:44px;background:#1A3C5E;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:24px;height:24px;fill:#fff}
+.logo-text{font-size:20px;font-weight:600;color:#1A3C5E}
+.logo-sub{font-size:12px;color:#64748b;text-align:center;margin-bottom:8px}
+h2{font-size:22px;font-weight:600;color:#1e293b;margin-bottom:6px;text-align:center}
+.subtitle{font-size:13px;color:#64748b;text-align:center;margin-bottom:28px}
+label{display:block;font-size:12px;font-weight:500;color:#475569;margin-bottom:6px}
+input{width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;outline:none;transition:border .2s;color:#1e293b}
+input:focus{border-color:#1A3C5E;box-shadow:0 0 0 3px rgba(26,60,94,0.1)}
+.field{margin-bottom:18px}
+.error{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;font-size:13px;padding:10px 14px;border-radius:8px;margin-bottom:16px}
+.btn{width:100%;padding:12px;background:#1A3C5E;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.3px;transition:background .2s}
+.btn:hover{background:#15304d}
+.hint{font-size:11px;color:#94a3b8;text-align:center;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 3a1 1 0 011 1v3h3a1 1 0 010 2h-3v3a1 1 0 01-2 0v-3H8a1 1 0 010-2h3V7a1 1 0 011-1z"/></svg>
+    </div>
+    <span class="logo-text">MediDash</span>
+  </div>
+  <h2>Welcome back</h2>
+  <p class="subtitle">Sign in to the hospital management portal</p>
+
+  {% if error %}
+  <div class="error">{{ error }}</div>
+  {% endif %}
+
+  <form method="POST">
+    <div class="field">
+      <label>Username</label>
+      <input type="text" name="username" placeholder="Enter username" required autofocus>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" name="password" placeholder="Enter password" required>
+    </div>
+    <button class="btn" type="submit">Sign in</button>
+  </form>
+  <p class="hint">Default: admin / hospital123</p>
+</div>
+</body>
+</html>

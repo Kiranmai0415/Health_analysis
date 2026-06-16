@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MediDash — Patient Registry</title>
+        <link href="https://googleapis.com" rel="stylesheet">
+        <style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f0f4f8;color:#1e293b;padding:40px 20px;min-height:100vh}
+.container{max-width:1200px;margin:0 auto}
+ 
+/* Table Layout Card */
+.table-card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05)}
+.table-header{padding:20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e2e8f0;gap:12px;flex-wrap:wrap}
+.table-title{font-size:16px;font-weight:700;color:#1A3C5E}
+.add-btn{display:flex;align-items:center;gap:6px;background:#1A3C5E;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s}
+.add-btn:hover{background:#15304d}
+ 
+/* Table Formatting */
+.table-wrap{width:100%;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:1000px}
+th{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;padding:12px 16px;background:#f8fafc;text-align:left;border-bottom:1px solid #e2e8f0}
+td{font-size:13px;color:#334155;padding:14px 16px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8fafc}
+ 
+/* Status Component Badges */
+.status-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:capitalize}
+.s-admitted{background:#dbeafe;color:#1d4ed8}
+.s-discharged{background:#dcfce7;color:#15803d}
+.s-critical{background:#fee2e2;color:#dc2626}
+.s-observation{background:#fef9c3;color:#a16207}
+.s-stable{background:#f0fdf4;color:#16a34a}
+ 
+/* Action Controls Row */
+.action-btn{border:none;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.edit-btn{background:#e0f2fe;color:#0369a1;margin-right:6px}
+.edit-btn:hover{background:#bae6fd}
+.delete-btn{background:#fee2e2;color:#b91c1c}
+.delete-btn:hover{background:#fecaca}
+ 
+/* Pop-up Dialog Window Engine */
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);z-index:1000;backdrop-filter:blur(4px);align-items:center;justify-content:center}
+.modal.open{display:flex}
+.modal-content{background:#fff;width:650px;max-width:95%;border-radius:14px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04);overflow:hidden;animation:modalSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1)}
+@keyframes modalSlide{from{transform:translateY(-30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{padding:18px 24px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;background:#f8fafc}
+.modal-header h3{font-size:16px;font-weight:700;color:#1e293b}
+.close-modal{font-size:24px;cursor:pointer;color:#94a3b8;line-height:1}
+.close-modal:hover{color:#475569}
+ 
+/* Structured Input Form Layout */
+#patientForm{padding:24px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full-width{grid-column:span 2}
+.form-group label{font-size:12px;font-weight:600;color:#475569}
+.form-group input, .form-group select{border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;font-size:13px;outline:none;background:#fff;color:#1e293b;transition:border-color 0.2s}
+.form-group input:focus, .form-group select:focus{border-color:#1A3C5E;box-shadow:0 0 0 3px rgba(26,60,94,0.1)}
+.form-group input:disabled{background:#f1f5f9;color:#94a3b8;cursor:not-allowed}
+ 
+/* Modal Bottom Control Footer */
+.modal-footer{display:flex;justify-content:flex-end;gap:12px;margin-top:24px;padding-top:18px;border-top:1px solid #e2e8f0}
+.cancel-btn{background:#f1f5f9;border:none;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:#475569}
+.cancel-btn:hover{background:#e2e8f0}
+.save-btn{background:#1A3C5E;border:none;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:#fff}
+.save-btn:hover{background:#15304d}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="table-card">
+                <div class="table-header">
+                    <div class="table-title">Clinical Patient Registry Directory</div>
+                    <button class="add-btn" onclick="openAddModal()">+ Add New Patient</button>
+                </div>
+                <div class="table-wrap">
+                    <table id="patientTable">
+                        <thead>
+                            <tr>
+                                <th>Patient ID</th>
+                                <th>Patient Profile</th>
+                                <th>Clinical Area</th>
+                                <th>Diagnosis</th>
+                                <th>Timeline (Stay)</th>
+                                <th>Status</th>
+                                <th>Attending Doctor</th>
+                                <th>Total Bill</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Initial Row: Seeded with Kavitha Gupta's dataset parameters -->
+                            <tr id="row-P0088">
+                                <td>
+                                    <strong>#P0088</strong>
+                                </td>
+                                <td>
+                                    <div style="font-weight:600;">Kavitha Gupta</div>
+                                    <div style="font-size:11px;color:#64748b;">45 yrs / Male / BG: A-</div>
+                                </td>
+                                <td>Orthopedics</td>
+                                <td>Arthritis</td>
+                                <td>
+                                    <div style="font-size:12px;">In: 2025-10-13</div>
+                                    <div style="font-size:11px;color:#94a3b8;">Out: 2025-10-23 (10 Days)</div>
+                                </td>
+                                <td>
+                                    <span class="status-badge s-admitted">Admitted</span>
+                                </td>
+                                <td>Dr. Das</td>
+                                <td style="font-weight:600;color:#0f172a;">₹1,14,351.97</td>
+                                <td>
+                                    <div style="display:flex;">
+                                        <button class="action-btn edit-btn" onclick="openEditModal('P0088')">Edit</button>
+                                        <button class="action-btn delete-btn" onclick="deletePatient('P0088')">Delete</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- Add/Edit Dynamic Form Dialog Window Container -->
+        <div id="patientModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">Register New Inpatient</h3>
+                    <span class="close-modal" onclick="closeModal()">&times;</span>
+                </div>
+                <form id="patientForm" onsubmit="savePatient(event)">
+                    <!-- Modal Operational State Parameters Tracker Flags -->
+                    <input type="hidden" id="form-mode" value="add">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Patient ID *</label>
+                            <input
+                                type="text"
+                                id="form-id"
+                                placeholder="e.g., P0089"
+                                required
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label>Patient Full Name *</label>
+                            <input type="text" id="form-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Age *</label>
+                            <input
+                                type="number"
+                                id="form-age"
+                                min="0"
+                                max="130"
+                                required
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label>Gender *</label>
+                            <select id="form-gender" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Blood Group *</label>
+                            <select id="form-blood-group" required>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Medical Department *</label>
+                            <input
+                                type="text"
+                                id="form-dept"
+                                placeholder="e.g., Cardiology"
+                                required
+                            >
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Clinical Diagnosis *</label>
+                            <input
+                                type="text"
+                                id="form-diagnosis"
+                                placeholder="Primary underlying condition"
+                                required
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label>Admission Date *</label>
+                            <input
+                                type="date"
+                                id="form-adm-date"
+                                onchange="calculateStayDays()"
+                                required
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label>Discharge Date</label>
+                            <input type="date" id="form-dis-date" onchange="calculateStayDays()">
+                        </div>
+                        <div class="form-group">
+                            <label>Calculated Stay Length (Days)</label>
+                            <input
+                                type="number"
+                                id="form-stay-days"
+                                value="0"
+                                disabled
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label>Inpatient Current Status *</label>
+                            <select id="form-status" required>
+                                <option value="Admitted">Admitted</option>
+                                <option value="Stable">Stable</option>
+                                <option value="Critical">Critical</option>
+                                <option value="Observation">Observation</option>
+                                <option value="Discharged">Discharged</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Attending Medical Practitioner *</label>
+                            <input
+                                type="text"
+                                id="form-doctor"
+                                placeholder="e.g., Dr. Smith"
+                                required
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label>Total Invoice Financial Bill Amount (INR) *</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                id="form-bill"
+                                placeholder="0.00"
+                                required
+                            >
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="cancel-btn" onclick="closeModal()">Cancel Layout</button>
+                        <button type="submit" class="save-btn">Commit Registry Data</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>
