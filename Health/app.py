@@ -1,10 +1,9 @@
 from flask import Flask, render_template, jsonify, request, send_file, redirect, url_for, session
 import sqlite3, os
+from config import DB_PATH, EXCEL_PATH
 
 app = Flask(__name__)
 app.secret_key = "hospital_secret_2024"
-DB_PATH    = "hospital.db"
-EXCEL_PATH = "hospital_output.xlsx"
 
 # ── Users & Roles ─────────────────────────────────────
 # Roles: admin | doctor | nurse | receptionist
@@ -163,7 +162,7 @@ if __name__ == "__main__":
         print("\n🏥 Hospital Dashboard starting at http://127.0.0.1:5000")
         print("\n── Login Credentials ──────────────────────")
         print("  admin        / admin123       (Admin)")
-        print("  dr_ramesh   / doctor123      (Doctor)")
+        print("  dr_ramesh    / doctor123      (Doctor)")
         print("  dr_preethi   / doctor456      (Doctor)")
         print("  nurse_kavya  / nurse123       (Nurse)")
         print("  nurse_sneha  / nurse456       (Nurse)")

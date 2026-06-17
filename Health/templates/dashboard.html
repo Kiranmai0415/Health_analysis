@@ -1,89 +1,400 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hospital Patient Analytics</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MediDash — {{ user.name }}</title>
+<link rel="stylesheet" href="../static/dashboard.css"
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-    <link rel="stylesheet" href="../static/dashboard.css">
 </head>
-
 <body>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 3a1 1 0 011 1v3h3a1 1 0 010 2h-3v3a1 1 0 01-2 0v-3H8a1 1 0 010-2h3V7a1 1 0 011-1z"/></svg>
+    </div>
+    <div>
+      <div class="sb-logo-text">MediDash</div>
+      <div class="sb-logo-sub">Hospital Management</div>
+    </div>
+  </div>
 
-        <div class="sidebar-logo">
-            <svg viewBox="0 0 24 24">
-                <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 3a1 1 0 011 1v3h3a1 1 0 010 2h-3v3a1 1 0 01-2 0v-3H8a1 1 0 010-2h3V7a1 1 0 011-1z"/>
-            </svg>
-            <span>MediDash</span>
+  <div class="sb-user">
+    <div class="sb-avatar avatar-{{ user.role }}">{{ user.avatar }}</div>
+    <div class="sb-user-info">
+      <div class="sb-user-name">{{ user.name }}</div>
+      <div class="sb-user-role">{{ user.role }}</div>
+    </div>
+  </div>
+
+  <div class="sb-role-chip chip-{{ user.role }}">
+    {% if user.role=='admin' %}⚙ Administrator
+    {% elif user.role=='doctor' %}🩺 Doctor
+    {% elif user.role=='nurse' %}💉 Nurse
+    {% else %}🗂 Receptionist{% endif %}
+  </div>
+
+  <div class="sb-section">Main Menu</div>
+  <a class="sb-nav-item active" href="#">
+    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+    Dashboard
+  </a>
+  <a class="sb-nav-item" href="#">
+    <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+    Patients
+  </a>
+  {% if user.role in ['admin','doctor'] %}
+  <a class="sb-nav-item" href="#">
+    <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14l4-4h12a2 2 0 002-2V5a2 2 0 00-2-2z"/></svg>
+    Reports
+  </a>
+  {% endif %}
+  {% if user.role in ['admin','receptionist'] %}
+  <a class="sb-nav-item" href="#">
+    <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+    Billing
+  </a>
+  {% endif %}
+  {% if user.role == 'admin' %}
+  <a class="sb-nav-item" href="#">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+    Users
+  </a>
+  {% endif %}
+
+  <div class="sb-footer">
+    <a class="sb-logout" href="/logout">
+      <svg viewBox="0 0 24 24"><path d="M17 7l-1.4 1.4 2.6 2.6H7v2h11.2l-2.6 2.6L17 17l5-5-5-5zM5 5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h7v-2H5V5z"/></svg>
+      Sign out
+    </a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">
+        {% if user.role=='admin' %}Hospital Overview
+        {% elif user.role=='doctor' %}Clinical Patient View
+        {% elif user.role=='nurse' %}Ward Monitoring
+        {% else %}Reception & Billing{% endif %}
+      </div>
+      <div class="topbar-sub">Real-time patient management system</div>
+    </div>
+    <div class="topbar-right">
+      <div class="live-badge"><div class="live-dot"></div>Live</div>
+      <button class="btn-refresh" onclick="refreshAll()">
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        Refresh
+      </button>
+      {% if perms.export %}
+      <a class="btn-export" href="/export">
+        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        Export Excel
+      </a>
+      {% else %}
+      <div class="no-access">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+        Export restricted
+      </div>
+      {% endif %}
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- KPI CARDS -->
+    {% if perms.stats %}
+    <div class="section-title">Overview</div>
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-icon icon-blue"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
+        <div class="kpi-label">Total Patients</div>
+        <div class="kpi-val" id="s-total">—</div>
+        <div class="kpi-sub">All records in system</div>
+        <div class="kpi-trend trend-neu" id="t-total">—</div>
+      </div>
+      <div class="kpi-card kpi-amber">
+        <div class="kpi-icon icon-amber"><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 3a1 1 0 011 1v3h3a1 1 0 010 2h-3v3a1 1 0 01-2 0v-3H8a1 1 0 010-2h3V7a1 1 0 011-1z"/></svg></div>
+        <div class="kpi-label">Admitted</div>
+        <div class="kpi-val" id="s-admitted">—</div>
+        <div class="kpi-sub">Currently in wards</div>
+        <div class="kpi-trend trend-neu" id="t-admitted">—</div>
+      </div>
+      <div class="kpi-card kpi-red">
+        <div class="kpi-icon icon-red"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div>
+        <div class="kpi-label">Critical</div>
+        <div class="kpi-val" id="s-critical">—</div>
+        <div class="kpi-sub">Needs immediate care</div>
+        <div class="kpi-trend trend-down" id="t-critical">Alert</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-icon icon-green"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+        <div class="kpi-label">Discharged</div>
+        <div class="kpi-val" id="s-discharged">—</div>
+        <div class="kpi-sub">Successfully recovered</div>
+        <div class="kpi-trend trend-up" id="t-discharged">Good</div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- BILLING KPI -->
+    {% if perms.billing %}
+    <div class="section-title">Billing Summary</div>
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-icon icon-blue"><svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg></div>
+        <div class="kpi-label">Total Billing</div>
+        <div class="kpi-val money" id="s-bill">—</div>
+        <div class="kpi-sub">All patient charges</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-icon icon-green"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg></div>
+        <div class="kpi-label">Amount Paid</div>
+        <div class="kpi-val money" id="s-paid">—</div>
+        <div class="kpi-sub">Cleared payments</div>
+      </div>
+      <div class="kpi-card kpi-red">
+        <div class="kpi-icon icon-red"><svg viewBox="0 0 24 24"><path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></svg></div>
+        <div class="kpi-label">Pending</div>
+        <div class="kpi-val money" id="s-pending">—</div>
+        <div class="kpi-sub">Outstanding dues</div>
+      </div>
+      <div class="kpi-card kpi-purple">
+        <div class="kpi-icon icon-purple"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+        <div class="kpi-label">Under Observation</div>
+        <div class="kpi-val" id="s-obs">—</div>
+        <div class="kpi-sub">Being monitored</div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- CHARTS -->
+    {% if perms.charts %}
+    <div class="section-title">Analytics</div>
+    <div class="charts-row charts-row-3" style="margin-bottom:16px">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Patients by Condition</div>
+          <div class="chart-badge" id="cond-total">Loading…</div>
         </div>
-
-        <div class="user-info">
-            <div class="user-av">
-                {{ user.avatar | default('DR') }}
-            </div>
-
-            <div>
-                <div class="user-name">
-                    {{ user.name | default('Dr. Alex Mercer') }}
-                </div>
-
-                <div class="user-role">
-                    {{ user.role | default('Doctor') }}
-                </div>
-            </div>
+        <div class="chart-wrap"><canvas id="condChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Ward Distribution</div>
+          <div class="chart-badge">5 wards</div>
         </div>
-
-        <div class="role-badge role-{{ user.role | default('doctor') }}">
-            {% if user.role == 'admin' %}
-                ⚙ Administrator
-            {% elif user.role == 'doctor' or not user.role %}
-                🩺 Doctor
-            {% elif user.role == 'nurse' %}
-                💉 Nurse
-            {% else %}
-                🗂 Receptionist
-            {% endif %}
+        <div class="chart-wrap"><canvas id="wardChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Status Breakdown</div>
+          <div class="chart-badge">All statuses</div>
         </div>
-
-        <div class="sidebar-sub">Navigation</div>
-
-        <a href="#" class="nav-item active">
-            Dashboard
-        </a>
-
-        <a href="../hospital_output.xlsx" class="nav-item">
-            Patients
-        </a>
-
-        {% if user.role in ['admin','doctor'] or not user.role %}
-        <a href="#" class="nav-item">
-            Reports
-        </a>
-        {% endif %}
-
-        <div class="sidebar-footer">
-            <a href="/logout" class="logout-btn">
-                Sign Out
-            </a>
+        <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
+      </div>
+    </div>
+    {% if perms.billing %}
+    <div class="charts-row charts-row-2" style="margin-bottom:24px">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Billing Overview</div>
+          <div class="chart-badge">₹ Summary</div>
         </div>
-
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <main class="main-content">
-
-        <div class="page-header">
-            <h1>Hospital Patient Data Analytics</h1>
+        <div class="chart-wrap"><canvas id="billChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Payment Status</div>
+          <div class="chart-badge">Paid vs Unpaid</div>
         </div>
+        <div class="chart-wrap"><canvas id="payChart"></canvas></div>
+      </div>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="locked-box">
+      <div class="locked-icon">📊</div>
+      <div class="locked-msg">Analytics charts are not available for your role</div>
+      <div class="locked-roles">Available to: Admin, Doctor</div>
+    </div>
+    {% endif %}
 
-        <!-- Dashboard content goes here -->
+    <!-- PATIENT TABLE -->
+    <div class="section-title">Patient Records</div>
+    <div class="table-card">
+      <div class="table-topbar">
+        <div class="table-title-wrap">
+          <div class="table-title">All Patients</div>
+          <div class="table-count" id="table-count">Loading…</div>
+        </div>
+        <div class="table-controls">
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7 14 5 12 5 9.5S7 5 9.5 5 14 7 14 9.5 12 14 9.5 14z"/></svg>
+            <input type="text" id="search" placeholder="Search name, condition, doctor…" oninput="fetchPatients()">
+          </div>
+          <select class="filter-select" id="filterStatus" onchange="fetchPatients()">
+            <option value="">All Status</option>
+            <option>Admitted</option><option>Discharged</option>
+            <option>Critical</option><option>Under Observation</option><option>Stable</option>
+          </select>
+          <select class="filter-select" id="filterWard" onchange="fetchPatients()">
+            <option value="">All Wards</option>
+            <option>General</option><option>ICU</option>
+            <option>Pediatric</option><option>Maternity</option><option>Orthopedic</option>
+          </select>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Patient Name</th><th>Age</th><th>Gender</th>
+              <th>Blood</th><th>Condition</th><th>Doctor</th>
+              <th>Admitted</th><th>Ward</th><th>Status</th>
+              {% if perms.billing %}<th>Bill (₹)</th><th>Paid</th>{% endif %}
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="pag-bar">
+        <span class="pag-info" id="pag-info">Loading…</span>
+        <div class="pag-btns" id="pag-btns"></div>
+      </div>
+    </div>
 
-    </main>
+  </div><!-- /content -->
+</div><!-- /main -->
 
+<script>
+const BILLING = {{ 1 if perms.billing else 0 }};
+const CHARTS  = {{ 1 if perms.charts else 0 }};
+const STATS   = {{ 1 if perms.stats else 0 }};
+let page = 1;
+const fmt = n => '₹' + Number(n).toLocaleString('en-IN',{maximumFractionDigits:0});
+
+const CHART_COLORS = ['#2563EB','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#EC4899','#14B8A6','#F97316','#6366F1'];
+
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size   = 11;
+
+async function loadStats(){
+  if(!STATS && !BILLING) return;
+  const d = await fetch('/api/stats').then(r=>r.json());
+  if(STATS){
+    document.getElementById('s-total').textContent     = d.total;
+    document.getElementById('s-admitted').textContent  = d.admitted;
+    document.getElementById('s-critical').textContent  = d.critical;
+    document.getElementById('s-discharged').textContent= d.discharged;
+    document.getElementById('t-total').textContent     = d.total + ' total';
+    document.getElementById('t-admitted').textContent  = Math.round(d.admitted/d.total*100)+'% of total';
+    document.getElementById('t-critical').textContent  = d.critical > 0 ? '⚠ Alert' : '✓ Safe';
+  }
+  if(BILLING){
+    document.getElementById('s-bill').textContent    = fmt(d.total_bill);
+    document.getElementById('s-paid').textContent    = fmt(d.paid);
+    document.getElementById('s-pending').textContent = fmt(d.pending);
+    document.getElementById('s-obs').textContent     = d.observation;
+  }
+}
+
+let chartsLoaded = false;
+async function loadCharts(){
+  if(!CHARTS || chartsLoaded) return;
+  chartsLoaded = true;
+  const opts = {responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}};
+
+  const cond = await fetch('/api/conditions').then(r=>r.json());
+  document.getElementById('cond-total').textContent = cond.length + ' conditions';
+  new Chart(document.getElementById('condChart'),{
+    type:'bar',
+    data:{labels:cond.map(c=>c.condition),datasets:[{data:cond.map(c=>c.count),backgroundColor:CHART_COLORS,borderRadius:5,borderSkipped:false}]},
+    options:{...opts,scales:{y:{beginAtZero:true,grid:{color:'#F1F5F9'},ticks:{color:'#94A3B8',stepSize:1}},x:{grid:{display:false},ticks:{color:'#94A3B8'}}}}
+  });
+
+  const ward = await fetch('/api/wards').then(r=>r.json());
+  new Chart(document.getElementById('wardChart'),{
+    type:'doughnut',
+    data:{labels:ward.map(w=>w.ward),datasets:[{data:ward.map(w=>w.count),backgroundColor:CHART_COLORS,borderWidth:3,borderColor:'#fff',hoverOffset:6}]},
+    options:{...opts,cutout:'65%',plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,padding:10,color:'#64748B'}}}}
+  });
+
+  const stat = await fetch('/api/statuses').then(r=>r.json());
+  new Chart(document.getElementById('statusChart'),{
+    type:'pie',
+    data:{labels:stat.map(s=>s.status),datasets:[{data:stat.map(s=>s.count),backgroundColor:['#2563EB','#10B981','#EF4444','#F59E0B','#06B6D4'],borderWidth:3,borderColor:'#fff'}]},
+    options:{...opts,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,padding:10,color:'#64748B'}}}}
+  });
+
+  if(BILLING){
+    const b = await fetch('/api/stats').then(r=>r.json());
+    new Chart(document.getElementById('billChart'),{
+      type:'bar',
+      data:{labels:['Total','Paid','Pending'],datasets:[{data:[b.total_bill,b.paid,b.pending],backgroundColor:['#2563EB','#10B981','#EF4444'],borderRadius:8,borderSkipped:false}]},
+      options:{...opts,scales:{y:{beginAtZero:true,grid:{color:'#F1F5F9'},ticks:{color:'#94A3B8',callback:v=>'₹'+Number(v).toLocaleString('en-IN',{maximumFractionDigits:0})}},x:{grid:{display:false},ticks:{color:'#94A3B8'}}}}
+    });
+    const paid = await fetch('/api/patients?per_page=1000').then(r=>r.json());
+    const paidCount   = paid.patients.filter(p=>p.paid).length;
+    const unpaidCount = paid.patients.filter(p=>!p.paid).length;
+    new Chart(document.getElementById('payChart'),{
+      type:'doughnut',
+      data:{labels:['Paid','Unpaid'],datasets:[{data:[paidCount,unpaidCount],backgroundColor:['#10B981','#EF4444'],borderWidth:3,borderColor:'#fff',hoverOffset:6}]},
+      options:{...opts,cutout:'68%',plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,padding:10,color:'#64748B'}}}}
+    });
+  }
+}
+
+function statusBadge(s){
+  const m={Admitted:'b-admitted',Discharged:'b-discharged',Critical:'b-critical','Under Observation':'b-observation',Stable:'b-stable'};
+  return `<span class="badge ${m[s]||''}">${s}</span>`;
+}
+
+async function fetchPatients(pg){
+  if(pg) page=pg;
+  const q = encodeURIComponent(document.getElementById('search').value);
+  const st= encodeURIComponent(document.getElementById('filterStatus').value);
+  const w = encodeURIComponent(document.getElementById('filterWard').value);
+  const d = await fetch(`/api/patients?search=${q}&status=${st}&ward=${w}&page=${page}&per_page=10`).then(r=>r.json());
+
+  document.getElementById('table-count').textContent = d.total + ' patients found';
+  document.getElementById('tbody').innerHTML = d.patients.map(p=>`
+    <tr>
+      <td><span style="color:var(--muted);font-size:11px">#${p.id}</span></td>
+      <td><span class="patient-name">${p.name}</span></td>
+      <td>${p.age}</td><td>${p.gender}</td>
+      <td><span style="font-weight:600;color:var(--red)">${p.blood_group}</span></td>
+      <td>${p.condition}</td>
+      <td><span style="color:var(--navy2)">${p.doctor}</span></td>
+      <td>${p.admission_date}</td>
+      <td><span style="color:var(--muted)">${p.ward}</span></td>
+      <td>${statusBadge(p.status)}</td>
+      ${BILLING?`<td><strong>₹${Number(p.bill_amount).toLocaleString('en-IN',{maximumFractionDigits:0})}</strong></td><td class="${p.paid?'paid-yes':'paid-no'}">${p.paid?'✓ Paid':'✗ Due'}</td>`:''}
+    </tr>`).join('');
+
+  const total = d.total, pages = Math.ceil(total/10);
+  document.getElementById('pag-info').textContent = `Showing ${(page-1)*10+1}–${Math.min(page*10,total)} of ${total} patients`;
+  const btns = document.getElementById('pag-btns');
+  btns.innerHTML = '';
+  for(let i=1;i<=pages;i++){
+    const b=document.createElement('button');
+    b.className='pag-btn'+(i===page?' active':'');
+    b.textContent=i; b.onclick=()=>fetchPatients(i);
+    btns.appendChild(b);
+  }
+}
+
+function refreshAll(){ loadStats(); fetchPatients(); }
+setInterval(refreshAll, 30000);
+loadStats(); loadCharts(); fetchPatients();
+</script>
 </body>
 </html>
-
